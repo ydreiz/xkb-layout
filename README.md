@@ -35,7 +35,7 @@ system-level context.
 - Linux with X11
 - GCC
 - X11 development headers and libraries (`libX11`)
-- `make`
+- `make` (optional for the alternative build method)
 
 ### Debian/Ubuntu
 
@@ -58,8 +58,15 @@ sudo pacman -S base-devel libx11
 
 ## Build
 
+### Recommended way
 ```bash
 make
+```
+
+### Alternative way
+```bash
+chmod +x ./build.sh
+./build.sh
 ```
 
 This produces the executable `xkb-layout` in the project root.
@@ -82,7 +89,8 @@ us
 .
 ├── main.c      # program source code
 ├── Makefile    # build instructions
-└── xkb-layout  # compiled binary (after build)
+├── build.sh    # alternative build script
+└── xkb-layout  # compiled binary (created after build)
 ```
 
 ## Roadmap
