@@ -1,6 +1,6 @@
 .PHONY: all release debug install uninstall clean
 
-CC = clang
+CC = gcc
 CFLAGS_COMMON = -Wall -Wextra -pedantic
 LDFLAGS = -lX11
 
