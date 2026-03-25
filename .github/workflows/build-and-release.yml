@@ -1,0 +1,74 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            image: ubuntu:latest
+            artifact_name: xkb-layout-x86_64
+          - arch: arm64
+            image: arm64v8/ubuntu:latest
+            artifact_name: xkb-layout-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build
+        run: |
+          PLATFORM_FLAG=""
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            PLATFORM_FLAG="--platform linux/arm64"
+          fi
+
+          docker run --rm $PLATFORM_FLAG -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "
+            apt-get update && \
+            apt-get install -y build-essential libx11-dev && \
+            make clean || true && \
+            make all && \
+            tar -czvf ${{ matrix.artifact_name }}.tar.gz xkb-layout
+          "
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          pattern: xkb-layout-*
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/*.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
