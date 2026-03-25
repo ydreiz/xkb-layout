@@ -36,8 +36,7 @@ jobs:
           docker run --rm $PLATFORM_FLAG -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "
             apt-get update && \
             apt-get install -y build-essential libx11-dev && \
-            make clean || true && \
-            make all && \
+            make release && \
             tar -czvf ${{ matrix.artifact_name }}.tar.gz xkb-layout
           "
 
