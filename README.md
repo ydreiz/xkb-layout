@@ -24,6 +24,18 @@ then prints the active layout for the current keyboard group.
 The main goal of this repository is learning and practicing C in a real,
 system-level context.
 
+## Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/install.sh | bash
+```
+
+## Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/uninstall.sh | bash
+```
+
 ## Features
 
 - Reads active keyboard group via XKB (`XkbGetState`)
