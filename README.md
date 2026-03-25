@@ -2,81 +2,98 @@
 
 Small C utility that prints the current XKB keyboard layout on Linux/X11.
 
-This repository used as a personal C practice project.
-
 ## Table of contents
 
 - [About](#about)
 - [Features](#features)
 - [Requirements](#requirements)
-- [Build](#build)
+- [Quick install (release binary)](#quick-install-release-binary)
+- [Build from source](#build-from-source)
 - [Run](#run)
 - [Project structure](#project-structure)
-- [Roadmap](#roadmap)
+- [Release process](#release-process)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## About
 
 `xkb-layout` connects to the X server, reads keyboard state and XKB properties,
-then prints the active layout for the current keyboard group.
+and prints the active layout for the current keyboard group.
 
-The main goal of this repository is learning and practicing C in a real,
-system-level context.
-
-## Install
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/install.sh | bash
-```
-
-## Uninstall
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/uninstall.sh | bash
-```
+It is designed for scripts, status bars, and terminal usage where a short plain
+text output is needed.
 
 ## Features
 
 - Reads active keyboard group via XKB (`XkbGetState`)
 - Parses `_XKB_RULES_NAMES` from the root X11 window
-- Prints the active layout as plain text (for scripts and terminal use)
+- Prints only the active layout (for example `us`, `ru`)
+- Supports local build/install via `make`
+- Supports release-binary install via `scripts/install.sh`
 
 ## Requirements
 
-- Linux with X11
-- Clang or GCC
-- X11 development headers and libraries (`libX11`)
-- `make`
+### Runtime
 
-### Debian/Ubuntu
+- Linux with X11
+
+### Build from source
+
+- GCC and `make`
+- X11 development headers and libraries (`libX11`)
+
+### Dependencies by distro
+
+#### Debian/Ubuntu
 
 ```bash
 sudo apt update
 sudo apt install build-essential libx11-dev
 ```
 
-### Fedora
+#### Fedora
 
 ```bash
 sudo dnf install gcc make libX11-devel
 ```
 
-### Arch Linux
+#### Arch Linux
 
 ```bash
 sudo pacman -S base-devel libx11
 ```
 
-## Build
+## Quick install (release binary)
 
-### Standard build (debug)
+Install latest GitHub release to `~/.local/bin/xkb-layout`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/install.sh | bash
+```
+
+Install a specific version:
+
+```bash
+TAG=v1.0.0 curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/install.sh | bash
+```
+
+Uninstall:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/refs/heads/main/scripts/uninstall.sh | bash
+```
+
+Supported release architectures: `x86_64`, `arm64`.
+
+## Build from source
+
+### Debug build (default)
 
 ```bash
 make
 ```
 
-This produces the executable `xkb-layout` with debug symbols.
+Builds `xkb-layout` with debug symbols.
 
 ### Release build
 
@@ -84,34 +101,35 @@ This produces the executable `xkb-layout` with debug symbols.
 make release
 ```
 
-Compiles with optimizations (`-O3`) and strips symbols.
+Builds with optimizations and strips symbols.
 
-### Clean build files
+### Local install/uninstall
+
+By default, install target is `~/.local/bin`.
+
+```bash
+make install
+make uninstall
+```
+
+### Clean
 
 ```bash
 make clean
 ```
 
-## Installation
-
-By default, the binary is installed to `~/.local/bin`.
-
-### Install
-
-```bash
-make install
-```
-
-### Uninstall
-
-```bash
-make uninstall
-```
-
 ## Run
+
+From repository root:
 
 ```bash
 ./xkb-layout
+```
+
+If installed to `~/.local/bin` and PATH is configured:
+
+```bash
+xkb-layout
 ```
 
 Example output:
@@ -124,29 +142,32 @@ us
 
 ```text
 .
-├── main.c      # program source code
-├── Makefile    # build and install instructions
-└── xkb-layout  # compiled binary (created after build)
+├── main.c
+├── Makefile
+├── scripts/
+│   ├── install.sh
+│   └── uninstall.sh
+└── .github/workflows/
+    └── build-and-release.yml
 ```
 
-## Roadmap
+## Release process
 
-- Improve error handling and return codes
+Pushing a tag matching `v*` triggers GitHub Actions to:
+
+1. Build release binaries for `x86_64` and `arm64`
+2. Pack each binary into a tar.gz artifact
+3. Publish artifacts in a GitHub Release
 
 ## Contributing
 
-This is primarily a learning repository, but suggestions and improvements are
-welcome.
-
-If you want to contribute:
+This repository is primarily a C learning project, but improvements are welcome.
 
 1. Fork the repository
 2. Create a feature branch
 3. Commit your changes
-4. Open a merge request
+4. Open a pull request
 
 ## License
 
-This project is licensed under the MIT License.
-
-See `LICENSE` for full text.
+This project is licensed under the MIT License. See `LICENSE` for details.
