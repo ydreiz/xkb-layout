@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}.tar.gz
+          path: ./artifacts/${{ matrix.artifact_name }}.tar.gz
 
   release:
     needs: build
@@ -79,12 +79,12 @@ jobs:
           path: ./artifacts
 
       - name: Create Codeberg Release
-        uses: actions/forgejo-release@v2.12.1
+        uses: actions/forgejo-release@v2
         with:
           direction: upload
           url: ${{ github.server_url }}
           repo: ${{ github.repository }}
           token: ${{ secrets.RELEASE_TOKEN }}
           tag: ${{ github.ref_name }}
-          release-dir: ./artifacts/**/*.tar.gz
+          release-dir: ./artifacts
           release-notes-assistant: true
