@@ -86,5 +86,5 @@ jobs:
           repo: ${{ github.repository }}
           token: ${{ secrets.RELEASE_TOKEN }}
           tag: ${{ github.ref_name }}
-          release-dir: ./artifacts
+          release-dir: ./artifacts/**/*.tar.gz
           release-notes-assistant: true
