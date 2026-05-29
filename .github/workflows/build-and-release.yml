@@ -79,7 +79,7 @@ jobs:
           path: ./artifacts
 
       - name: Create Codeberg Release
-        uses: actions/release-action@v1
+        uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifacts: "./artifacts/**/*.tar.gz"
