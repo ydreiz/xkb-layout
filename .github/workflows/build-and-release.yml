@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
@@ -82,7 +82,7 @@ jobs:
       - name: Create Codeberg Release
         uses: actions/forgejo-release@v2.12.1
         with:
-          direction: upload
+          direction: ./artifacts
           url: ${{ github.server_url }}
           repo: ${{ github.repository }}
           token: ${{ secrets.RELEASE_TOKEN }}
