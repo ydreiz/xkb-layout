@@ -61,6 +61,7 @@ jobs:
           else
             make release
           fi
+          mkdir artifacts
           tar -czvf ./artifacts/${{ matrix.artifact_name }}.tar.gz xkb-layout
 
       - name: Upload Artifact
