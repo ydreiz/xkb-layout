@@ -49,14 +49,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -64,10 +57,9 @@ jobs:
           pattern: xkb-layout-*
           merge-multiple: true
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Create Codeberg Release
+        uses: actions/release-action@v1
         with:
-          files: ./artifacts/*.tar.gz
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          artifacts: "./artifacts/*.tar.gz"
+          token: ${{ secrets.RELEASE_TOKEN }}
