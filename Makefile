@@ -1,6 +1,6 @@
 .PHONY: all release debug install uninstall clean
 
-CC = gcc
+CC ?= gcc
 CFLAGS_COMMON = -Wall -Wextra -pedantic
 LDFLAGS = -lX11
 
@@ -14,7 +14,7 @@ all: debug
 debug: CFLAGS = $(CFLAGS_COMMON) -ggdb -DDEBUG
 debug: $(TARGET)
 
-release: CFLAGS = $(CFLAGS_COMMON) -O3 -march=native -flto -DNDEBUG -s
+release: CFLAGS = $(CFLAGS_COMMON) -O3 -flto -DNDEBUG -s
 release: clean $(TARGET)
 
 $(TARGET): $(SRC)

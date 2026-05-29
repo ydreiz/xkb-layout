@@ -7,54 +7,55 @@ on:
 
 jobs:
   build:
-    runs-on: codeberg-small-lazy
+    runs-on: codeberg-small
     strategy:
       matrix:
         include:
           - arch: x86_64
-            image: ubuntu:latest
-            artifact_name: xkb-layout-x86_64
+            pkg_arch: amd64
           - arch: arm64
-            image: arm64v8/ubuntu:latest
-            artifact_name: xkb-layout-arm64
+            pkg_arch: arm64
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: Install dependencies (x86_64)
+        if: matrix.arch == 'x86_64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libx11-dev
+
+      - name: Install dependencies (ARM64 Cross-Compile)
         if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libx11-dev:arm64
 
       - name: Build
         run: |
-          PLATFORM_FLAG=""
           if [ "${{ matrix.arch }}" = "arm64" ]; then
-            PLATFORM_FLAG="--platform linux/arm64"
+            make CC=aarch64-linux-gnu-gcc release
+          else
+            make release
           fi
-
-          docker run --rm $PLATFORM_FLAG -v ${{ github.workspace }}:/work -w /work ${{ matrix.image }} /bin/bash -c "
-            apt-get update && \
-            apt-get install -y build-essential libx11-dev && \
-            make release && \
-            tar -czvf ${{ matrix.artifact_name }}.tar.gz xkb-layout
-          "
+          tar -czvf ${{ matrix.arch }}.tar.gz xkb-layout
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}.tar.gz
+          name: xkb-layout-${{ matrix.arch }}
+          path: ${{ matrix.arch }}.tar.gz
 
   release:
     needs: build
-    runs-on: codeberg-small-lazy
+    runs-on: codeberg-small
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
-          pattern: xkb-layout-*
           merge-multiple: true
 
       - name: Create Codeberg Release
