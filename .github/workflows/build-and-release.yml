@@ -80,7 +80,7 @@ jobs:
           path: ./artifacts
 
       - name: Create Codeberg Release
-        uses: actions/forgejo-release@v2
+        uses: actions/forgejo-release@v2.12.1
         with:
           direction: upload
           url: ${{ github.server_url }}
