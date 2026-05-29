@@ -12,9 +12,9 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            pkg_arch: amd64
+            artifact_name: xkb-layout-x86_64
           - arch: arm64
-            pkg_arch: arm64
+            artifact_name: xkb-layout-arm64
 
     steps:
       - name: Checkout code
@@ -30,6 +30,17 @@ jobs:
         if: matrix.arch == 'arm64'
         run: |
           sudo dpkg --add-architecture arm64
+          sudo sed -i 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
+          sudo sed -i 's/deb-src http/deb-src [arch=amd64] http/g' /etc/apt/sources.list
+
+          if [ -d /etc/apt/sources.list.d ]; then
+            find /etc/apt/sources.list.d/ -name "*.sources" -exec sudo sed -i 's/Architectures: /Architectures: amd64 /g' {} +
+          fi
+
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports noble main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports noble-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports noble-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libx11-dev:arm64
 
@@ -40,27 +51,26 @@ jobs:
           else
             make release
           fi
-          tar -czvf ${{ matrix.arch }}.tar.gz xkb-layout
+          tar -czvf ${{ matrix.artifact_name }}.tar.gz xkb-layout
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: xkb-layout-${{ matrix.arch }}
-          path: ${{ matrix.arch }}.tar.gz
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}.tar.gz
 
   release:
     needs: build
     runs-on: codeberg-small
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           path: ./artifacts
-          merge-multiple: true
 
       - name: Create Codeberg Release
         uses: actions/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "./artifacts/*.tar.gz"
+          artifacts: "./artifacts/**/*.tar.gz"
           token: ${{ secrets.RELEASE_TOKEN }}
