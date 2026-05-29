@@ -78,25 +78,8 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: Generate Smart Release Notes
-        env:
-          RNA_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          curl -sL -o release-notes https://code.forgejo.org/forgejo/release-notes-assistant/releases/download/v1.7.1/release-notes-assistant
-          chmod +x release-notes
-
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
-
-          ./release-notes \
-             --forgejo-url ${{ github.server_url }} \
-             --repository ${{ github.repository }} \
-             --token "$RNA_TOKEN" \
-             --storage file \
-             --storage-location release_notes.md \
-             release "$TAG_NAME"
-
       - name: Create Codeberg Release
-        uses: actions/forgejo-release@v2
+        uses: actions/forgejo-release@v2.12.1
         with:
           direction: upload
           url: ${{ github.server_url }}
@@ -104,4 +87,4 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           tag: ${{ github.ref_name }}
           release-dir: ./artifacts
-          release-notes-file: release_notes.md
+          release-notes-assistant: true
