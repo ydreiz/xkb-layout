@@ -46,7 +46,7 @@ jobs:
 
       - name: Flatten artifacts structure
         run: |
-          mkdir -p releasE
+          mkdir -p release
           find artifacts -type f -name "*.tar.gz" -exec cp {} release/ \;
           ls -R release
 
