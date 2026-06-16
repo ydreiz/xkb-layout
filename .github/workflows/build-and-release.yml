@@ -43,8 +43,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
-          pattern: xkb-layout-*
-          merge-multiple: true
+
+      - name: Flatten artifacts structure
+        run: |
+          mkdir -p releasE
+          find artifacts -type f -name "*.tar.gz" -exec cp {} release/ \;
+          ls -R release
 
       - name: Create Codeberg Release
         uses: actions/forgejo-release@v2
@@ -54,5 +58,5 @@ jobs:
           repo: ${{ github.repository }}
           token: ${{ secrets.RELEASE_TOKEN }}
           tag: ${{ github.ref_name }}
-          release-dir: artifacts
+          release-dir: release
           release-notes-assistant: true
