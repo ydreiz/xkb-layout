@@ -12,80 +12,47 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            artifact_name: xkb-layout-x86_64
-          - arch: arm64
-            artifact_name: xkb-layout-arm64
+            name: xkb-layout-x86_64
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies (x86_64)
-        if: matrix.arch == 'x86_64'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libx11-dev
 
-      - name: Install dependencies (ARM64 Cross-Compile)
-        if: matrix.arch == 'arm64'
-        run: |
-          sudo dpkg --add-architecture arm64
-
-          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
-            sudo sed -i 's/Architectures: amd64 arm64/Architectures: amd64/g' /etc/apt/sources.list.d/ubuntu.sources
-            if ! grep -q "Architectures:" /etc/apt/sources.list.d/ubuntu.sources; then
-              sudo sed -i '/Suites:/i Architectures: amd64' /etc/apt/sources.list.d/ubuntu.sources
-            fi
-          fi
-
-          if [ -f /etc/apt/sources.list ]; then
-            sudo sed -i 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
-            sudo sed -i 's/deb-src http/deb-src [arch=amd64] http/g' /etc/apt/sources.list
-          fi
-
-          if [ -d /etc/apt/sources.list.d ]; then
-            sudo find /etc/apt/sources.list.d/ -type f -name "*.list" -exec sed -i 's/deb http/deb [arch=amd64] http/g' {} +
-          fi
-
-          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports noble main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports noble-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports noble-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libx11-dev:arm64
-
       - name: Build
         run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            make CC=aarch64-linux-gnu-gcc release
-          else
-            make release
-          fi
+          make release
           mkdir artifacts
-          tar -czvf ./artifacts/${{ matrix.artifact_name }}.tar.gz xkb-layout
+          tar -czvf ${{ matrix.name }}.tar.gz xkb-layout
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ./artifacts/${{ matrix.artifact_name }}.tar.gz
+          name: ${{ matrix.name }}
+          path: ${{ matrix.name }}.tar.gz
 
   release:
     needs: build
     runs-on: codeberg-small
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: artifacts
+          pattern: xkb-layout-*
+          merge-multiple: true
 
       - name: Create Codeberg Release
         uses: actions/forgejo-release@v2.12.1
         with:
-          direction: ./artifacts
+          direction: artifacts
           url: ${{ github.server_url }}
           repo: ${{ github.repository }}
           token: ${{ secrets.RELEASE_TOKEN }}
           tag: ${{ github.ref_name }}
-          release-dir: ./artifacts
+          release-dir: artifacts
           release-notes-assistant: true
