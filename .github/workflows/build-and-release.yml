@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: codeberg-small
+    runs-on: self-hosted
     strategy:
       matrix:
         include:
@@ -37,7 +37,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: codeberg-small
+    runs-on: self-hosted
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
