@@ -28,7 +28,8 @@ text output is needed.
 - Reads active keyboard group via XKB (`XkbGetState`)
 - Parses `_XKB_RULES_NAMES` from the root X11 window
 - Prints only the active layout (for example `us`, `ru`)
-- Supports local build/install via `make`
+- Supports local builds via `make` or `zig build`
+- Supports local install/uninstall via `make`
 - Supports release-binary install via `scripts/install.sh`
 
 ## Requirements
@@ -39,8 +40,17 @@ text output is needed.
 
 ### Build from source
 
-- GCC and `make`
 - X11 development headers and libraries (`libX11`)
+- One of the following build toolchains:
+  - GCC and `make`
+  - Zig 0.17.1 (the version is pinned in `mise.toml`)
+
+If you use [mise](https://mise.jdx.dev/), install the pinned Zig version from the
+repository root:
+
+```bash
+mise install
+```
 
 ### Dependencies by distro
 
@@ -87,7 +97,9 @@ Supported release architectures: `x86_64`, `arm64`.
 
 ## Build from source
 
-### Debug build (default)
+### Using Make
+
+#### Debug build (default)
 
 ```bash
 make
@@ -95,7 +107,7 @@ make
 
 Builds `xkb-layout` with debug symbols.
 
-### Release build
+#### Release build
 
 ```bash
 make release
@@ -103,7 +115,7 @@ make release
 
 Builds with optimizations and strips symbols.
 
-### Local install/uninstall
+#### Local install/uninstall
 
 By default, install target is `~/.local/bin`.
 
@@ -112,18 +124,55 @@ make install
 make uninstall
 ```
 
-### Clean
+#### Clean
 
 ```bash
 make clean
 ```
 
+### Using Zig
+
+#### Debug build (default)
+
+```bash
+zig build
+```
+
+Installs the executable to `zig-out/bin/xkb-layout`.
+
+#### Release build
+
+```bash
+zig build -Doptimize=ReleaseFast
+```
+
+You can also select a target explicitly with `-Dtarget=<target>`; Zig uses the
+host target by default.
+
+#### Build and run
+
+```bash
+zig build run
+```
+
 ## Run
 
-From repository root:
+After a Make build, run from the repository root:
 
 ```bash
 ./xkb-layout
+```
+
+After a Zig build, run:
+
+```bash
+./zig-out/bin/xkb-layout
+```
+
+Alternatively, build and run in one step:
+
+```bash
+zig build run
 ```
 
 If installed to `~/.local/bin` and PATH is configured:
@@ -144,6 +193,8 @@ us
 .
 ├── main.c
 ├── Makefile
+├── build.zig
+├── mise.toml
 ├── scripts/
 │   ├── install.sh
 │   └── uninstall.sh
