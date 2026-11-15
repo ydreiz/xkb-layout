@@ -16,10 +16,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - artifact: x86_64
+          - artifact: x86_64-glibc
             libc: glibc
             runner: ubuntu-latest
-          - artifact: arm64
+          - artifact: arm64-glibc
             libc: glibc
             runner: ubuntu-24.04-arm
           - artifact: x86_64-musl
@@ -100,7 +100,7 @@ jobs:
 
       - name: Verify release assets
         run: |
-          for variant in x86_64 arm64 x86_64-musl arm64-musl; do
+          for variant in x86_64-glibc arm64-glibc x86_64-musl arm64-musl; do
             archive="xkb-layout-$variant.tar.gz"
             test -f "release/$archive"
             test -f "release/$archive.sha256"

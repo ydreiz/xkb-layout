@@ -5,6 +5,7 @@ set -eu -o pipefail
 ARCH=$(uname -m)
 REPO="ydreiz/xkb-layout"
 TAG="${TAG:-}"
+LIBC="glibc"
 
 case "$ARCH" in
     x86_64)
@@ -21,7 +22,7 @@ esac
 
 case "$(ldd --version 2>&1 || true)" in
     *musl*)
-        FILE_ARCH="$FILE_ARCH-musl"
+        LIBC="musl"
         ;;
 esac
 
@@ -33,7 +34,7 @@ if [ "$TAG" = "" ]; then
     fi
 fi
 
-FILENAME="xkb-layout-$FILE_ARCH.tar.gz"
+FILENAME="xkb-layout-$FILE_ARCH-$LIBC.tar.gz"
 URL="https://github.com/$REPO/releases/download/$TAG/$FILENAME"
 INSTALL_DIR="$HOME/.local/bin"
 TEMP_ARCHIVE="/tmp/$FILENAME"
@@ -43,7 +44,7 @@ mkdir -p "$INSTALL_DIR"
 echo "Downloading: $URL"
 
 if ! curl -s -L --fail "$URL" -o "$TEMP_ARCHIVE"; then
-    echo "Error: The file could not be downloaded. The tag '$TAG' or the architecture '$FILE_ARCH' may not exist."
+    echo "Error: The file could not be downloaded. The tag '$TAG' or the variant '$FILE_ARCH-$LIBC' may not exist."
     exit 1
 fi
 

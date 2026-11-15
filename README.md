@@ -102,7 +102,7 @@ curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/main/scripts/unin
 
 Supported release variants:
 
-- glibc: `x86_64`, `arm64`
+- glibc: `x86_64-glibc`, `arm64-glibc`
 - musl: `x86_64-musl`, `arm64-musl`
 
 The installer detects musl-based systems and selects the corresponding package.
