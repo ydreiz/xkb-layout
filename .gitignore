@@ -1,1 +1,3 @@
 xkb-layout
+.zig-cache/
+zig-out/
