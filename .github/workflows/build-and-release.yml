@@ -5,58 +5,66 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    runs-on: self-hosted
-    strategy:
-      matrix:
-        include:
-          - arch: x86_64
-            name: xkb-layout-x86_64
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: "0.17.1"
+          use-cache: false
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libx11-dev
+          sudo apt-get install -y libx11-dev
 
-      - name: Build
+      - name: Build release binary
+        run: zig build -Doptimize=ReleaseFast
+
+      - name: Package binary
         run: |
-          make release
-          mkdir artifacts
-          tar -czvf ${{ matrix.name }}.tar.gz xkb-layout
+          test -x zig-out/bin/xkb-layout
+          tar -czf xkb-layout-x86_64.tar.gz -C zig-out/bin xkb-layout
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+      # Keep v4 for compatibility with both GitHub and act's artifact server.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}
-          path: ${{ matrix.name }}.tar.gz
+          name: xkb-layout-x86_64
+          path: xkb-layout-x86_64.tar.gz
+          if-no-files-found: error
 
   release:
     needs: build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: xkb-layout-x86_64
+          path: release
 
-      - name: Flatten artifacts structure
+      - name: Verify release asset
         run: |
-          mkdir -p release
-          find artifacts -type f -name "*.tar.gz" -exec cp {} release/ \;
-          ls -R release
+          test -f release/xkb-layout-x86_64.tar.gz
+          tar -tzf release/xkb-layout-x86_64.tar.gz | grep -qx xkb-layout
 
-      - name: Create Codeberg Release
-        uses: actions/forgejo-release@v2
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
         with:
-          direction: upload
-          url: ${{ github.server_url }}
-          repo: ${{ github.repository }}
-          token: ${{ secrets.RELEASE_TOKEN }}
-          tag: ${{ github.ref_name }}
-          release-dir: release
-          release-notes-assistant: true
+          files: release/xkb-layout-x86_64.tar.gz
+          fail_on_unmatched_files: true
+          generate_release_notes: true

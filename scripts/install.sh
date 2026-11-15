@@ -3,7 +3,7 @@
 set -eu -o pipefail
 
 ARCH=$(uname -m)
-REPO="yurid/xkb-layout"
+REPO="ydreiz/xkb-layout"
 TAG="${TAG:-}"
 
 case "$ARCH" in
@@ -20,7 +20,7 @@ case "$ARCH" in
 esac
 
 if [ "$TAG" = "" ]; then
-    TAG=$(curl -s "https://codeberg.org/api/v1/repos/$REPO/releases/latest" | awk -F'"tag_name": *"' '{print $2}' | awk -F'"' '{print $1}')
+    TAG=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | awk -F'"tag_name": *"' '{print $2}' | awk -F'"' '{print $1}')
     if [ "$TAG" = "" ]; then
         echo "Error: Unable to retrieve the tag. Please check your connection or enter the tag manually."
         exit 1
@@ -28,7 +28,7 @@ if [ "$TAG" = "" ]; then
 fi
 
 FILENAME="xkb-layout-$FILE_ARCH.tar.gz"
-URL="https://codeberg.org/$REPO/releases/download/$TAG/$FILENAME"
+URL="https://github.com/$REPO/releases/download/$TAG/$FILENAME"
 INSTALL_DIR="$HOME/.local/bin"
 TEMP_ARCHIVE="/tmp/$FILENAME"
 

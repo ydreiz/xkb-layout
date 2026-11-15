@@ -78,19 +78,19 @@ sudo pacman -S base-devel libx11
 Install latest GitHub release to `~/.local/bin/xkb-layout`:
 
 ```bash
-curl -fsSL https://codeberg.org/yurid/xkb-layout/raw/branch/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/main/scripts/install.sh | bash
 ```
 
 Install a specific version:
 
 ```bash
-TAG=v1.0.0 curl -fsSL https://codeberg.org/yurid/xkb-layout/raw/branch/main/scripts/install.sh | bash
+TAG=v1.0.0 curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/main/scripts/install.sh | bash
 ```
 
 Uninstall:
 
 ```bash
-curl -fsSL https://codeberg.org/yurid/xkb-layout/raw/branch/main/scripts/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/main/scripts/uninstall.sh | bash
 ```
 
 Supported release architectures: `x86_64`, `arm64`.
