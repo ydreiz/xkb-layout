@@ -208,7 +208,8 @@ Pushing a tag matching `v*` triggers GitHub Actions to:
 
 1. Build release binaries for `x86_64` and `arm64`
 2. Pack each binary into a tar.gz artifact
-3. Publish artifacts in a GitHub Release
+3. Generate a `.sha256` checksum file for each archive
+4. Publish the archives and checksum files in a GitHub Release
 
 ## Contributing
 

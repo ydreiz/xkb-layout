@@ -10,7 +10,15 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout code
@@ -30,17 +38,21 @@ jobs:
       - name: Build release binary
         run: zig build -Doptimize=ReleaseFast
 
-      - name: Package binary
+      - name: Package binary and generate checksum
         run: |
+          archive="xkb-layout-${{ matrix.arch }}.tar.gz"
           test -x zig-out/bin/xkb-layout
-          tar -czf xkb-layout-x86_64.tar.gz -C zig-out/bin xkb-layout
+          tar -czf "$archive" -C zig-out/bin xkb-layout
+          sha256sum "$archive" > "$archive.sha256"
 
       # Keep v4 for compatibility with both GitHub and act's artifact server.
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: xkb-layout-x86_64
-          path: xkb-layout-x86_64.tar.gz
+          name: xkb-layout-${{ matrix.arch }}
+          path: |
+            xkb-layout-${{ matrix.arch }}.tar.gz
+            xkb-layout-${{ matrix.arch }}.tar.gz.sha256
           if-no-files-found: error
 
   release:
@@ -51,20 +63,28 @@ jobs:
       contents: write
 
     steps:
-      - name: Download artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: xkb-layout-x86_64
+          pattern: xkb-layout-*
           path: release
+          merge-multiple: true
 
-      - name: Verify release asset
+      - name: Verify release assets
         run: |
-          test -f release/xkb-layout-x86_64.tar.gz
-          tar -tzf release/xkb-layout-x86_64.tar.gz | grep -qx xkb-layout
+          for arch in x86_64 arm64; do
+            archive="xkb-layout-$arch.tar.gz"
+            test -f "release/$archive"
+            test -f "release/$archive.sha256"
+            tar -tzf "release/$archive" | grep -qx xkb-layout
+            (cd release && sha256sum --check "$archive.sha256")
+          done
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: release/xkb-layout-x86_64.tar.gz
+          files: |
+            release/xkb-layout-*.tar.gz
+            release/xkb-layout-*.tar.gz.sha256
           fail_on_unmatched_files: true
           generate_release_notes: true
