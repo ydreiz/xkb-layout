@@ -10,14 +10,23 @@ permissions:
 
 jobs:
   build:
+    name: Build ${{ matrix.artifact }}
     runs-on: ${{ matrix.runner }}
 
     strategy:
       matrix:
         include:
-          - arch: x86_64
+          - artifact: x86_64
+            libc: glibc
             runner: ubuntu-latest
-          - arch: arm64
+          - artifact: arm64
+            libc: glibc
+            runner: ubuntu-24.04-arm
+          - artifact: x86_64-musl
+            libc: musl
+            runner: ubuntu-latest
+          - artifact: arm64-musl
+            libc: musl
             runner: ubuntu-24.04-arm
 
     steps:
@@ -30,17 +39,36 @@ jobs:
           version: "0.17.1"
           use-cache: false
 
-      - name: Install dependencies
+      - name: Install glibc build dependencies
+        if: matrix.libc == 'glibc'
         run: |
           sudo apt-get update
           sudo apt-get install -y libx11-dev
 
-      - name: Build release binary
+      - name: Build glibc release binary
+        if: matrix.libc == 'glibc'
         run: zig build -Doptimize=ReleaseFast
+
+      - name: Build musl release binary in Alpine
+        if: matrix.libc == 'musl'
+        run: |
+          zig_dir=$(dirname "$(readlink -f "$(command -v zig)")")
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -v "$zig_dir:/opt/zig:ro" \
+            -w /src \
+            alpine:3.22 \
+            sh -eu -c '
+              apk add --no-cache libx11-dev
+              /opt/zig/zig build -Doptimize=ReleaseFast
+              ldd_output=$(ldd zig-out/bin/xkb-layout)
+              printf "%s\n" "$ldd_output"
+              printf "%s\n" "$ldd_output" | grep -q "/lib/ld-musl-"
+            '
 
       - name: Package binary and generate checksum
         run: |
-          archive="xkb-layout-${{ matrix.arch }}.tar.gz"
+          archive="xkb-layout-${{ matrix.artifact }}.tar.gz"
           test -x zig-out/bin/xkb-layout
           tar -czf "$archive" -C zig-out/bin xkb-layout
           sha256sum "$archive" > "$archive.sha256"
@@ -49,10 +77,10 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: xkb-layout-${{ matrix.arch }}
+          name: xkb-layout-${{ matrix.artifact }}
           path: |
-            xkb-layout-${{ matrix.arch }}.tar.gz
-            xkb-layout-${{ matrix.arch }}.tar.gz.sha256
+            xkb-layout-${{ matrix.artifact }}.tar.gz
+            xkb-layout-${{ matrix.artifact }}.tar.gz.sha256
           if-no-files-found: error
 
   release:
@@ -72,8 +100,8 @@ jobs:
 
       - name: Verify release assets
         run: |
-          for arch in x86_64 arm64; do
-            archive="xkb-layout-$arch.tar.gz"
+          for variant in x86_64 arm64 x86_64-musl arm64-musl; do
+            archive="xkb-layout-$variant.tar.gz"
             test -f "release/$archive"
             test -f "release/$archive.sha256"
             tar -tzf "release/$archive" | grep -qx xkb-layout

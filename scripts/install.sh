@@ -19,6 +19,12 @@ case "$ARCH" in
         ;;
 esac
 
+case "$(ldd --version 2>&1 || true)" in
+    *musl*)
+        FILE_ARCH="$FILE_ARCH-musl"
+        ;;
+esac
+
 if [ "$TAG" = "" ]; then
     TAG=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | awk -F'"' '/"tag_name":/ { print $4; exit }')
     if [ "$TAG" = "" ]; then

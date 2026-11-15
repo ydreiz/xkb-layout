@@ -36,7 +36,8 @@ text output is needed.
 
 ### Runtime
 
-- Linux with X11
+- Linux with X11 and `libX11`
+- A release binary matching the system libc (`glibc` or `musl`)
 
 ### Build from source
 
@@ -73,6 +74,12 @@ sudo dnf install gcc make libX11-devel
 sudo pacman -S base-devel libx11
 ```
 
+#### Alpine Linux (musl)
+
+```bash
+sudo apk add build-base libx11-dev
+```
+
 ## Quick install (release binary)
 
 Install latest GitHub release to `~/.local/bin/xkb-layout`:
@@ -93,7 +100,13 @@ Uninstall:
 curl -fsSL https://raw.githubusercontent.com/ydreiz/xkb-layout/main/scripts/uninstall.sh | bash
 ```
 
-Supported release architectures: `x86_64`, `arm64`.
+Supported release variants:
+
+- glibc: `x86_64`, `arm64`
+- musl: `x86_64-musl`, `arm64-musl`
+
+The installer detects musl-based systems and selects the corresponding package.
+All binaries are dynamically linked and require `libX11` at runtime.
 
 ## Build from source
 
@@ -206,7 +219,7 @@ us
 
 Pushing a tag matching `v*` triggers GitHub Actions to:
 
-1. Build release binaries for `x86_64` and `arm64`
+1. Build glibc and musl release binaries for `x86_64` and `arm64`
 2. Pack each binary into a tar.gz artifact
 3. Generate a `.sha256` checksum file for each archive
 4. Publish the archives and checksum files in a GitHub Release
